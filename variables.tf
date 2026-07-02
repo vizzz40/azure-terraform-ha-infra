@@ -1,13 +1,13 @@
 variable "resource_group_name" {
   description = "Name of the resource group"
   type        = string
-  default     = "project"
+  default     = "project-1"
 }
 
 variable "location" {
   description = "Azure region where resources will be created"
   type        = string
-  default     = "northitaly"
+  default     = "italynorth"
 }
 
 variable "vnet_address_space" {

@@ -17,8 +17,14 @@ resource "azurerm_virtual_network" "vnet" {
 # we then make our subnet
 
 resource "azurerm_subnet" "subnet" {
-  name                 = "${var.resource_group_name}-subnet-a"
+  name                 = "${var.resource_group_name}-subnet"
   resource_group_name  = azure_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = var.subnet_address_prefix
+}
+
+resource "azurerm_network_security_group" "myNSG" {
+  name                = "${var.resource_group_name}-NSG"
+  location            = var.location
+  resource_group_name = azure_resource_group.rg.name
 }
