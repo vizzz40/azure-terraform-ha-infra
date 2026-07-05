@@ -1,3 +1,8 @@
+#logical provider (works within terraform logic) to assign random name to load balancer hostname
+resource "random_string" "lb_hostname" {
+  length  = 8
+  special = false
+}
 # we keep all our resource inside a resource group, so we need to create one first
 
 resource "azure_resource_group" "rg" {
