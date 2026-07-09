@@ -5,9 +5,9 @@ resource "random_string" "lb_hostname" {
 }
 # we keep all our resource inside a resource group, so we need to create one first
 
-resource "azure_resource_group" "rg" {
+resource "azurerm_resource_group" "rg" {
   name     = var.resource_group_name
-  location = var.lcoation
+  location = var.location
 }
 
 # we then make our Vnet
@@ -16,14 +16,14 @@ resource "azurerm_virtual_network" "vnet" {
   name                = "${var.resource_group_name}-vnet" #i am using string interpolation to create a name for the vnet based on the resource group name
   address_space       = var.vnet_address_space
   location            = var.location
-  resource_group_name = azure_resource_group.rg.name
+  resource_group_name = azurerm_resource_group.rg.name
 }
 
 # we then make our subnet
 
 resource "azurerm_subnet" "subnet" {
   name                 = "${var.resource_group_name}-subnet"
-  resource_group_name  = azure_resource_group.rg.name
+  resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = var.subnet_address_prefix
 }
@@ -31,7 +31,7 @@ resource "azurerm_subnet" "subnet" {
 resource "azurerm_network_security_group" "myNSG" {
   name                = "${var.resource_group_name}-NSG"
   location            = var.location
-  resource_group_name = azure_resource_group.rg.name
+  resource_group_name = azurerm_resource_group.rg.name
 
   security_rule {
     name                       = "Allow-HTTP-From-LB"
@@ -76,3 +76,51 @@ resource "azurerm_subnet_network_security_group_association" "subnet_nsg_associa
   network_security_group_id = azurerm_network_security_group.myNSG.id
 }
 
+resource "azurerm_public_ip" "lb_public_ip" {
+  name                = "${var.resource_group_name}-lb-public-ip"
+  location            = var.location
+  resource_group_name = azurerm_resource_group.rg.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+  zones                = ["1", "2", "3"]
+  domain_name_label  = random_string.lb_hostname.result
+}
+
+resource "azurerm_lb" "load_balancer" {
+  name                = "${var.resource_group_name}-lb"
+  location            = var.location
+  resource_group_name = azurerm_resource_group.rg.name
+  sku                 = "Standard"
+
+  frontend_ip_configuration {
+    name                 = "LoadBalancerFrontEnd"
+    public_ip_address_id = azurerm_public_ip.lb_public_ip.id
+  }
+}
+# add the probe and backend pool for the LB\
+
+resource "azurerm_lb_backend_address_pool" "bpool" {
+  loadbalancer_id = azurerm_lb.load_balancer.id
+  name            = "BackEndAddressPool"
+}
+
+#The LB will check the server on '/' path at port 80 every few seconds for a 200 status code aka probing
+
+resource "azurerm_lb_probe" "http_probe" {
+  loadbalancer_id = azurerm_lb.load_balancer.id
+  name            = "http-probe"
+  port            = 80
+  protocol = "Http"
+  request_path = "/"
+}
+
+resource "azurerm_lb_rule" "example" {
+  loadbalancer_id                = azurerm_lb.load_balancer.id
+  name                           = "http_rule"
+  protocol                       = "Tcp"
+  frontend_port                  = 80
+  backend_port                   = 80
+  frontend_ip_configuration_name = "PublicIPAddress"
+  backend_address_pool_ids = [azurerm_lb_backend_address_pool.bpool.id]
+  probe_id = "azurerm_lb_probe.http_probe.id"
+}
