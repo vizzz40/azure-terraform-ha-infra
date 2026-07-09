@@ -124,3 +124,28 @@ resource "azurerm_lb_rule" "example" {
   backend_address_pool_ids = [azurerm_lb_backend_address_pool.bpool.id]
   probe_id = "azurerm_lb_probe.http_probe.id"
 }
+
+resource "azurerm_public_ip" "nat_pip" {
+  name                = "nat-gateway-pip"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_nat_gateway" "nat" {
+  name                = "nat-gateway"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  sku_name            = "Standard"
+}
+
+resource "azurerm_nat_gateway_public_ip_association" "nat_pip_assoc" {
+  nat_gateway_id       = azurerm_nat_gateway.nat.id
+  public_ip_address_id = azurerm_public_ip.nat_pip.id
+}
+
+resource "azurerm_subnet_nat_gateway_association" "subnet_nat_assoc" {
+  subnet_id      = azurerm_subnet.subnet.id
+  nat_gateway_id = azurerm_nat_gateway.nat.id
+}
