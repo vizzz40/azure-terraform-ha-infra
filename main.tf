@@ -120,9 +120,9 @@ resource "azurerm_lb_rule" "example" {
   protocol                       = "Tcp"
   frontend_port                  = 80
   backend_port                   = 80
-  frontend_ip_configuration_name = "PublicIPAddress"
+  frontend_ip_configuration_name = "LoadBalancerFrontEnd"
   backend_address_pool_ids = [azurerm_lb_backend_address_pool.bpool.id]
-  probe_id = "azurerm_lb_probe.http_probe.id"
+  probe_id = azurerm_lb_probe.http_probe.id
 }
 
 resource "azurerm_public_ip" "nat_pip" {
@@ -131,6 +131,18 @@ resource "azurerm_public_ip" "nat_pip" {
   location            = azurerm_resource_group.rg.location
   allocation_method   = "Static"
   sku                 = "Standard"
+}
+
+resource "azurerm_lb_nat_rule" "ssh_nat_rule" {
+  resource_group_name            = azurerm_resource_group.rg.name
+  loadbalancer_id                = azurerm_lb.load_balancer.id
+  name                           = "SSH-Access"
+  protocol                       = "Tcp"
+  frontend_port_start            = 50000 
+  frontend_port_end              = 50010 
+  backend_port                   = 22    
+  backend_address_pool_id        = azurerm_lb_backend_address_pool.bpool.id
+  frontend_ip_configuration_name = "LoadBalancerFrontEnd" 
 }
 
 resource "azurerm_nat_gateway" "nat" {
