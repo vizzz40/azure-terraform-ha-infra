@@ -1,0 +1,45 @@
+# Terraform working directory
+.terraform/
+
+# Terraform state files
+*.tfstate
+*.tfstate.*
+
+# Crash logs
+crash.log
+crash.*.log
+
+# Variable files that may contain secrets
+*.tfvars
+*.tfvars.json
+
+# Local override files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Terraform CLI configuration
+.terraformrc
+terraform.rc
+
+# Plan files
+*.tfplan
+tfplan
+
+# Environment/secrets files
+.env
+.env.*
+
+# SSH private keys
+*.pem
+*.key
+id_rsa
+id_ed25519
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.ssh/
