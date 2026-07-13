@@ -70,11 +70,11 @@ resource "azurerm_monitor_autoscale_setting" "autoscale" {
       minimum = 1
       maximum = 10
     }
-}
+
 
 #Scaling out laws
 
-rule {
+  rule {
       metric_trigger {
         metric_name        = "Percentage CPU"
         metric_resource_id = azurerm_orchestrated_virtual_machine_scale_set.vmss.id
@@ -94,7 +94,7 @@ rule {
       }
     }
 #Scaling in laws
-rule {
+  rule {
       metric_trigger {
         metric_name        = "Percentage CPU"
         metric_resource_id = azurerm_orchestrated_virtual_machine_scale_set.vmss.id
@@ -112,4 +112,5 @@ rule {
         cooldown  = "PT1M"
       }
     }
+}
 }
